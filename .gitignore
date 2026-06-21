@@ -1,0 +1,17 @@
+# Local and temporary files
+*.tmp
+*.swp
+*.bak
+.DS_Store
+Thumbs.db
+
+# Runtime output
+*.log
+reports/
+
+# Secrets and local environment files
+.env
+.env.*
+*.pem
+*.key
+
