@@ -8,7 +8,7 @@ My focus is not only reaching a working result. I want to understand the underly
 
 | Ticket | Project | Status |
 |---|---|---|
-| 081 | Safe log-retention automation with Bash | In progress |
+| 081 | Safe log-retention automation with Bash | Completed |
 
 ## Working Method
 
@@ -36,4 +36,3 @@ tickets/
 ## Security And Evidence
 
 I use synthetic test data before working with operational files. I do not commit passwords, private keys, tokens, personal data, or unredacted secrets. Evidence is limited to genuine screenshots that demonstrate meaningful results without repeating the same information.
-
