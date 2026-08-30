@@ -8,6 +8,7 @@ My focus is not only reaching a working result. I want to understand the underly
 
 | Ticket | Project | Status |
 |---|---|---|
+| 001 | Jenkins CI/CD pipeline for a Java app | In progress |
 | 081 | Safe log-retention automation with Bash | Completed |
 
 ## Working Method
@@ -26,6 +27,12 @@ For each ticket, I document:
 
 ```text
 tickets/
+  001-jenkins-java-pipeline/
+    README.md
+    Jenkinsfile
+    compose.yaml
+    pom.xml
+    src/
   081-log-cleanup/
     README.md
     scripts/
