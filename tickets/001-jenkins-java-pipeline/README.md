@@ -240,7 +240,7 @@ Possible fixes included changing host ownership to the remapped UID, granting an
 
 After removing the bind mount, the persistent deployment directory still belonged to container root (`0:0`) from its earlier lifecycle. A scoped maintenance command changed only that directory to Jenkins UID/GID `1000:1000`, followed by a non-root create/delete write test. Build 3 then completed successfully. Build 4 was triggered automatically by the commit that added null-input test coverage; it passed all three tests and completed deployment.
 
-See `docs/IMPLEMENTATION_LOG.md` for the evidence timeline and `docs/INTERVIEW_GUIDE.md` for concise interview-ready explanations.
+See `docs/IMPLEMENTATION_LOG.md` for the evidence timeline.
 
 ## Future extensions
 

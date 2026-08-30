@@ -35,7 +35,6 @@ tickets/
     src/
     docs/
       IMPLEMENTATION_LOG.md
-      INTERVIEW_GUIDE.md
   081-log-cleanup/
     README.md
     scripts/
