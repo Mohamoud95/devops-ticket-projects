@@ -45,11 +45,11 @@ If compilation or testing fails, later stages do not run. This is the safety mec
 
 ### 1. Install the prerequisites
 
-Install Docker Desktop and Git. Docker Desktop supplies both the Docker engine and the `docker compose` command. On Windows, start Docker Desktop before continuing.
+Install Docker Engine, the Docker Compose plugin, and Git. Your Ubuntu screenshot already confirms that all three are installed and available.
 
-Check them in PowerShell:
+Check them in the Ubuntu terminal:
 
-```powershell
+```bash
 docker --version
 docker compose version
 git --version
@@ -59,15 +59,17 @@ git --version
 
 ### 2. Enter the project directory
 
-```powershell
-cd C:\path\to\ticket-1-jenkins-java-pipeline
+```bash
+git clone https://github.com/Mohamoud95/devops-ticket-projects.git
+cd devops-ticket-projects/tickets/001-jenkins-java-pipeline
 ```
 
-`cd` means **change directory**. Commands normally operate on the current directory, so this makes the repository the current working context. Replace the example path with the actual clone location.
+- `git clone` downloads the repository and its Git history from GitHub. Run it only if the repository is not already on this machine.
+- `cd` means **change directory**. It enters ticket 1 so Docker Compose reads this ticket's `compose.yaml` rather than files belonging to another ticket.
 
 ### 3. Build and start Jenkins
 
-```powershell
+```bash
 docker compose up --build -d
 ```
 
@@ -80,7 +82,7 @@ Future use: the same pattern starts local databases, monitoring stacks, or multi
 
 Check the container:
 
-```powershell
+```bash
 docker compose ps
 docker compose logs -f jenkins
 ```
@@ -93,7 +95,7 @@ docker compose logs -f jenkins
 
 Open <http://localhost:8080>. Retrieve the one-time administrator password:
 
-```powershell
+```bash
 docker exec ticket-1-jenkins cat /var/jenkins_home/secrets/initialAdminPassword
 ```
 
@@ -103,27 +105,33 @@ docker exec ticket-1-jenkins cat /var/jenkins_home/secrets/initialAdminPassword
 
 Paste the password into Jenkins, choose **Install suggested plugins**, and create the first administrator user.
 
-### 5. Push the repository to GitHub
+### 5. Keep the existing repository up to date
 
-Create an empty GitHub repository named `ticket-1-jenkins-java-pipeline` without adding a README or `.gitignore,` because those files already exist here. Then run:
+Ticket 1 is stored inside the existing `devops-ticket-projects` repository. Before starting work in an existing clone, run:
 
-```powershell
-git init
-git add .
-git status
-git commit -m "Build ticket 1 Jenkins Java pipeline"
-git branch -M main
-git remote add origin https://github.com/Mohamoud95/ticket-1-jenkins-java-pipeline.git
-git push -u origin main
+```bash
+cd ~/devops-ticket-projects
+git pull --ff-only
+cd tickets/001-jenkins-java-pipeline
 ```
 
-- `git init` creates local Git metadata in `.git`.
-- `git add .` stages the current files for the next snapshot.
-- `git status` previews what will be committed; use it often before commits.
-- `git commit -m` saves the staged snapshot with a meaningful message.
-- `git branch -M main` renames the current branch to `main`.
-- `git remote add origin ...` gives the GitHub repository the conventional local name `origin`.
-- `git push -u origin main` uploads `main`; `-u` records the upstream so later `git push` is sufficient.
+- `git pull` downloads new commits and updates your checked-out branch.
+- `--ff-only` refuses to create an accidental merge commit when the local and remote histories have diverged.
+- The second `cd` returns to the ticket directory before Docker commands are run.
+
+For future changes to this ticket:
+
+```bash
+git status
+git add tickets/001-jenkins-java-pipeline
+git commit -m "Describe the ticket 1 change"
+git push
+```
+
+- `git status` previews modified and staged files; use it before every commit.
+- `git add` stages only ticket 1 rather than unrelated repository changes.
+- `git commit -m` records the staged snapshot with a meaningful message.
+- `git push` uploads the new commit to the configured GitHub remote.
 
 Never put passwords, tokens, private keys, or `.env` secrets in Git. A Git history retains old content even after a later deletion.
 
@@ -136,10 +144,10 @@ In Jenkins:
 3. Select **Pipeline**, then **OK**.
 4. Under **Pipeline**, choose **Pipeline script from SCM**.
 5. Set **SCM** to **Git**.
-6. Enter the GitHub repository URL.
+6. Enter `https://github.com/Mohamoud95/devops-ticket-projects.git` as the repository URL.
 7. For a public repository, no credentials are needed. For a private repository, add a GitHub credential with minimum required access.
 8. Set the branch specifier to `*/main`.
-9. Keep the script path as `Jenkinsfile`.
+9. Set the script path to `tickets/001-jenkins-java-pipeline/Jenkinsfile` because the pipeline is inside a monorepo subdirectory.
 10. Save and choose **Build Now**.
 
 Pipeline-as-code keeps automation versioned beside the app. Future edits to `Jenkinsfile` are reviewed and rolled back exactly like application code.
@@ -155,18 +163,19 @@ Open the build and then **Console Output**. A successful run passes through:
 
 Confirm the deployed artifact from PowerShell:
 
-```powershell
-Get-ChildItem .\deployments
+```bash
+ls -lh deployments
 ```
 
-`Get-ChildItem` lists directory contents. In PowerShell, `dir` and `ls` are aliases for the same command.
+`ls` lists directory contents. `-l` uses a detailed format and `-h` makes file sizes easier to read.
 
 ### 8. Prove that every commit triggers the pipeline
 
 Edit the greeting or add a test, then run:
 
-```powershell
-git add .
+```bash
+cd ~/devops-ticket-projects
+git add tickets/001-jenkins-java-pipeline
 git commit -m "Change application greeting"
 git push
 ```
@@ -183,7 +192,7 @@ Do not expose a local Jenkins server directly to the internet without HTTPS, aut
 
 ### 9. Useful lifecycle commands
 
-```powershell
+```bash
 docker compose stop
 docker compose start
 docker compose down
@@ -206,7 +215,7 @@ Do not run `docker compose down --volumes` unless you intend to erase Jenkins co
 
 ## Troubleshooting
 
-- **`docker` is not recognized:** install/start Docker Desktop, close PowerShell, and open a new PowerShell window.
+- **`docker: command not found`:** install Docker Engine, then open a new terminal. Your screenshot confirms Docker is already available.
 - **Port 8080 is already in use:** change `"8080:8080"` to `"8081:8080"` in `compose.yaml`, then browse to `http://localhost:8081`.
 - **Jenkins cannot find Maven:** rebuild the custom image with `docker compose build --no-cache`, then `docker compose up -d`.
 - **No revision to build:** verify the repository URL and branch specifier (`*/main`) in the Jenkins job.
