@@ -10,7 +10,6 @@ services:
       - "50000:50000"
     volumes:
       - jenkins_home:/var/jenkins_home
-      - ./deployments:/var/jenkins_home/deployments
 
 volumes:
   jenkins_home:

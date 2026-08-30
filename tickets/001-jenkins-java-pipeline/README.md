@@ -35,7 +35,7 @@ If compilation or testing fails, later stages do not run. This is the safety mec
 |-- pom.xml                      Maven project and dependency configuration
 |-- Dockerfile.jenkins           Jenkins image with Maven installed
 |-- compose.yaml                 Local Jenkins service definition
-|-- deployments/                 Local deployment destination
+|-- deployments/                 Tracked placeholder for optional exported artifacts
 `-- src/
     |-- main/java/.../App.java   Application code
     `-- test/java/.../AppTest.java Automated tests
@@ -163,13 +163,21 @@ Open the build and then **Console Output**. A successful run passes through:
 3. **Package** - `mvn package -DskipTests` makes `target/ticket-1-java-app-1.0.0.jar`. Tests are skipped here only because the preceding stage already ran them.
 4. **Deploy** - `cp` copies the JAR to the persistent deployment directory, then `java -jar` starts it once as a smoke test.
 
-Confirm the deployed artifact from PowerShell:
+Confirm the deployed artifact inside the persistent Jenkins volume:
 
 ```bash
-ls -lh deployments
+docker exec ticket-1-jenkins ls -lh /var/jenkins_home/deployments
 ```
 
-`ls` lists directory contents. `-l` uses a detailed format and `-h` makes file sizes easier to read.
+`docker exec` runs `ls` inside the Jenkins container. `-l` uses a detailed format and `-h` makes file sizes easier to read. The directory is part of the Docker-managed `jenkins_home` volume, so the JAR survives container replacement without weakening Docker's user-namespace isolation.
+
+To export the deployed JAR to the host for inspection, run:
+
+```bash
+docker cp ticket-1-jenkins:/var/jenkins_home/deployments/ticket-1-java-app.jar ./deployments/
+```
+
+`docker cp` copies a file between a container and the host. The source is the deployed JAR in persistent Jenkins storage, and the destination is the repository's local `deployments` directory. The JAR is ignored by Git.
 
 ### 8. Prove that every commit triggers the pipeline
 
@@ -211,7 +219,7 @@ Do not run `docker compose down --volumes` unless you intend to erase Jenkins co
 - [ ] Application compiles.
 - [ ] Both JUnit tests pass and appear in Jenkins test results.
 - [ ] Jenkins archives the versioned JAR.
-- [ ] Jenkins copies `ticket-1-java-app.jar` into `deployments/`.
+- [ ] Jenkins copies `ticket-1-java-app.jar` into `/var/jenkins_home/deployments/` in the persistent Jenkins volume.
 - [ ] A new Git commit causes another pipeline run.
 - [ ] Repository is visible on GitHub with no secrets committed.
 
@@ -222,7 +230,13 @@ Do not run `docker compose down --volumes` unless you intend to erase Jenkins co
 - **Jenkins cannot find Maven:** rebuild the custom image with `docker compose build --no-cache`, then `docker compose up -d`.
 - **No revision to build:** verify the repository URL and branch specifier (`*/main`) in the Jenkins job.
 - **Tests fail:** open the Test stage and read the assertion failure before changing the deployment stage.
-- **Permission denied in deployments:** confirm that Compose mounted `./deployments` at `/var/jenkins_home/deployments`.
+- **Permission denied in deployments with Docker user namespaces:** avoid a host bind mount for the deployment directory. Container UID `1000` may map to a different host UID, making a host-owned directory appear as `65534:65534` inside the container. Store the JAR in the existing `jenkins_home` named volume and use `docker cp` when a host copy is required.
+
+## Troubleshooting record: first deployment failure
+
+The first Jenkins run compiled, tested, and packaged the application but failed during deployment with `Permission denied`. Read-only checks showed that the host directory was owned by `1000:1000` while the container saw it as `65534:65534`. Docker reported the `userns` security option and a UID map beginning at host ID `100000`, confirming user-namespace remapping.
+
+Possible fixes included changing host ownership to the remapped UID, granting an ACL, disabling user namespaces for Jenkins, or using Docker-managed storage. This project keeps user-namespace isolation enabled and removes the deployment bind mount. The deployed JAR remains persistent in the existing `jenkins_home` named volume and can be exported explicitly with `docker cp`. This preserves a stronger security boundary and avoids host-specific UID assumptions.
 
 ## Future extensions
 
