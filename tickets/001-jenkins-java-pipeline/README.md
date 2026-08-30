@@ -152,6 +152,8 @@ In Jenkins:
 
 Pipeline-as-code keeps automation versioned beside the app. Future edits to `Jenkinsfile` are reviewed and rolled back exactly like application code.
 
+Because this project lives in a monorepo, Jenkins checks out the repository root while `pom.xml` is inside `tickets/001-jenkins-java-pipeline`. The pipeline therefore sets `PROJECT_DIR` and uses Jenkins's `dir(...)` step around Maven and deployment commands. Without that working-directory change, Maven would fail with a missing-project error because it could not find the POM.
+
 ### 7. Read the first result
 
 Open the build and then **Console Output**. A successful run passes through:
