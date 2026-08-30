@@ -1,6 +1,6 @@
 # Ticket 1: Jenkins CI/CD Pipeline for a Java App
 
-This repository solves ticket 1 from *100 Problem-Based DevOps Projects By CybeCloud*:
+This repository solves ticket 1 from *100 Problem-Based DevOps Projects*:
 
 > Build a Jenkins pipeline to compile, test, and deploy a Java app automatically after each commit.
 
