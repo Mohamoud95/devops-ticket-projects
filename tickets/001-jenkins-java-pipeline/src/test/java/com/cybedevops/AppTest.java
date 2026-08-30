@@ -13,8 +13,8 @@ class AppTest {
     @Test
     void usesDefaultWhenNameIsBlank() {
         assertEquals("Hello, DevOps!", App.greeting("  "));
-    }     
-    
+    }
+
     @Test
     void usesDefaultWhenNameIsNull() {
         assertEquals("Hello, DevOps!", App.greeting(null));

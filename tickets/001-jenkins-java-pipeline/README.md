@@ -216,12 +216,12 @@ Do not run `docker compose down --volumes` unless you intend to erase Jenkins co
 
 ## Definition of done
 
-- [ ] Application compiles.
-- [ ] Both JUnit tests pass and appear in Jenkins test results.
-- [ ] Jenkins archives the versioned JAR.
-- [ ] Jenkins copies `ticket-1-java-app.jar` into `/var/jenkins_home/deployments/` in the persistent Jenkins volume.
-- [ ] A new Git commit causes another pipeline run.
-- [ ] Repository is visible on GitHub with no secrets committed.
+- [x] Application compiles.
+- [x] All three JUnit tests pass and appear in Jenkins test results.
+- [x] Jenkins archives the versioned JAR.
+- [x] Jenkins copies `ticket-1-java-app.jar` into `/var/jenkins_home/deployments/` in the persistent Jenkins volume.
+- [x] A new Git commit causes another pipeline run through SCM polling.
+- [x] Repository is visible on GitHub with no secrets committed.
 
 ## Troubleshooting
 
@@ -237,6 +237,10 @@ Do not run `docker compose down --volumes` unless you intend to erase Jenkins co
 The first Jenkins run compiled, tested, and packaged the application but failed during deployment with `Permission denied`. Read-only checks showed that the host directory was owned by `1000:1000` while the container saw it as `65534:65534`. Docker reported the `userns` security option and a UID map beginning at host ID `100000`, confirming user-namespace remapping.
 
 Possible fixes included changing host ownership to the remapped UID, granting an ACL, disabling user namespaces for Jenkins, or using Docker-managed storage. This project keeps user-namespace isolation enabled and removes the deployment bind mount. The deployed JAR remains persistent in the existing `jenkins_home` named volume and can be exported explicitly with `docker cp`. This preserves a stronger security boundary and avoids host-specific UID assumptions.
+
+After removing the bind mount, the persistent deployment directory still belonged to container root (`0:0`) from its earlier lifecycle. A scoped maintenance command changed only that directory to Jenkins UID/GID `1000:1000`, followed by a non-root create/delete write test. Build 3 then completed successfully. Build 4 was triggered automatically by the commit that added null-input test coverage; it passed all three tests and completed deployment.
+
+See `docs/IMPLEMENTATION_LOG.md` for the evidence timeline and `docs/INTERVIEW_GUIDE.md` for concise interview-ready explanations.
 
 ## Future extensions
 

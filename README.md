@@ -8,7 +8,7 @@ My focus is not only reaching a working result. I want to understand the underly
 
 | Ticket | Project | Status |
 |---|---|---|
-| 001 | Jenkins CI/CD pipeline for a Java app | In progress |
+| 001 | Jenkins CI/CD pipeline for a Java app | Completed |
 | 081 | Safe log-retention automation with Bash | Completed |
 
 ## Working Method
@@ -33,6 +33,9 @@ tickets/
     compose.yaml
     pom.xml
     src/
+    docs/
+      IMPLEMENTATION_LOG.md
+      INTERVIEW_GUIDE.md
   081-log-cleanup/
     README.md
     scripts/
