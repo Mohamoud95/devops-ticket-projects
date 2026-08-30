@@ -1,0 +1,64 @@
+pipeline {
+    agent any
+
+    triggers {
+        // Jenkins checks the Git repository roughly every two minutes.
+        // A GitHub webhook can be configured later for near-instant builds.
+        pollSCM('H/2 * * * *')
+    }
+
+    options {
+        timestamps()
+        disableConcurrentBuilds()
+    }
+
+    environment {
+        APP_NAME = 'ticket-1-java-app'
+        DEPLOY_DIR = '/var/jenkins_home/deployments'
+    }
+
+    stages {
+        stage('Compile') {
+            steps {
+                sh 'mvn --batch-mode clean compile'
+            }
+        }
+
+        stage('Test') {
+            steps {
+                sh 'mvn --batch-mode test'
+            }
+            post {
+                always {
+                    junit 'target/surefire-reports/*.xml'
+                }
+            }
+        }
+
+        stage('Package') {
+            steps {
+                sh 'mvn --batch-mode package -DskipTests'
+                archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                sh '''
+                    mkdir -p "$DEPLOY_DIR"
+                    cp "target/${APP_NAME}-1.0.0.jar" "$DEPLOY_DIR/${APP_NAME}.jar"
+                    java -jar "$DEPLOY_DIR/${APP_NAME}.jar" Jenkins
+                '''
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "Pipeline succeeded. ${APP_NAME} was compiled, tested, packaged, and deployed."
+        }
+        failure {
+            echo 'Pipeline failed. Open the failed stage and read its console output.'
+        }
+    }
+}
